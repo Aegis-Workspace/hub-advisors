@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Reservation` MODIFY `status` ENUM('PENDING', 'PENDING_SIGNATURE', 'SIGNED', 'CONFIRMED') NOT NULL;

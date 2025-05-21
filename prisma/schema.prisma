@@ -1,0 +1,186 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                   Int           @id @default(autoincrement())
+  name                 String
+  email                String        @unique
+  phone                String?
+  password             String
+  role                 Role
+  status               UserStatus    @default(ATIVO)
+  createdAt            DateTime      @default(now())
+  reservations         Reservation[] @relation("UserReservations")
+  investorReservations Reservation[] @relation("InvestorReservations")
+  cpf                  String?
+  rg                   String?
+  address              Json?
+  bankAccount          Json?
+  parentId             Int?
+  parent               User?         @relation("AdvisorClients", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  clients              User[]        @relation("AdvisorClients")
+}
+
+model Investment {
+  id               Int               @id @default(autoincrement())
+  name             String
+  description      String
+  category         String?
+  type             InvestmentType
+  yieldRate        Float?
+  yieldIndex       YieldIndex?
+  minAmount        Float
+  totalAmount      Float?
+  availableAmount  Float?
+  reservedAmount   Float?
+  term             Int?
+  guarantee        Json
+  paymentFrequency PaymentFrequency?
+  registeredWith   Json
+  riskLevel        RiskLevel?
+  logo             String?
+  status           InvestmentStatus
+  image            String
+  news             News[]
+  schedule         Schedule[]
+  documents        Document[]
+  createdAt        DateTime          @default(now())
+  autoCloseDate    DateTime?
+  reservations     Reservation[]
+  yieldAdjustment  YieldAdjustment?
+  commission       Commission?
+}
+
+model YieldAdjustment {
+  id           Int        @id @default(autoincrement())
+  enabled      Boolean
+  minRate      Float
+  maxRate      Float
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  investmentId Int        @unique
+}
+
+model Commission {
+  id                 Int                     @id @default(autoincrement())
+  investment         Investment              @relation(fields: [investmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  investmentId       Int                     @unique
+  upfrontRate        Float
+  upfrontPayment     CommissionPaymentTiming
+  recurringRate      Float
+  recurringFrequency PaymentFrequency
+  yieldAdjustment    Json?
+  amount             Int?
+  status             CommissionStatus?
+  dueDate            DateTime?
+  paidDate           DateTime?
+}
+
+enum CommissionPaymentTiming {
+  ON_CONFIRMATION
+  ON_INVESTMENT
+  MONTHLY
+}
+
+model News {
+  id           Int        @id @default(autoincrement())
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  investmentId Int
+  date         DateTime
+  title        String
+  content      String
+}
+
+model Schedule {
+  id           Int        @id @default(autoincrement())
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  investmentId Int
+  date         DateTime
+  principal    Float
+  interest     Float
+}
+
+model Document {
+  id           Int        @id @default(autoincrement())
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  investmentId Int
+  name         String
+  url          String
+}
+
+model Reservation {
+  id                      Int               @id @default(autoincrement())
+  userId                  Int
+  investorId              Int
+  investmentId            Int?
+  investorName            String?
+  amount                  Float
+  status                  ReservationStatus
+  commissionUpfrontRate   Float?
+  commissionRecurringRate Float?
+  createdAt               DateTime          @default(now())
+
+  investment Investment? @relation(fields: [investmentId], references: [id])
+  investor   User        @relation("InvestorReservations", fields: [investorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user       User        @relation("UserReservations", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+enum Role {
+  admin
+  advisor
+  cliente
+}
+
+enum UserStatus {
+  ATIVO
+  INATIVO
+}
+
+enum InvestmentType {
+  CDB
+  LCI
+  LCA
+  DEBENTURE
+}
+
+enum YieldIndex {
+  CDI
+  IPCA
+}
+
+enum PaymentFrequency {
+  MONTHLY
+  QUARTERLY
+  SEMIANNUAL
+}
+
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+}
+
+enum InvestmentStatus {
+  PAUSED
+  OPEN
+  CLOSED
+  RESERVED
+  DRAFT
+}
+
+enum ReservationStatus {
+  PENDING
+  PENDING_SIGNATURE
+  SIGNED
+  CONFIRMED
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
