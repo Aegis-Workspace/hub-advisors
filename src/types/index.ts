@@ -57,7 +57,7 @@ export interface User {
   createdAt: string; // ISO string
   totalRaised?: number;
   totalCommission?: number;
-  activeInvestors?: number;
+  activeInvestors?: [number];
   reservations?: Reservation[];
   investments?: Investment[];
 }

@@ -44,9 +44,9 @@ model Investment {
   paymentFrequency PaymentFrequency?
   registeredWith   Json
   riskLevel        RiskLevel?
-  logo             String?
+  logo             String            @db.Text
   status           InvestmentStatus
-  image            String
+  image            String            @db.Text
   news             News[]
   schedule         Schedule[]
   documents        Document[]

@@ -16,9 +16,7 @@ app.use(express.json());
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const isDocument = file.fieldname.startsWith("documents");
-    const uploadPath = isDocument
-      ? path.join(__dirname, "public/documents")
-      : path.join(__dirname, "public/uploads");
+    const uploadPath = isDocument ? path.join(__dirname, "public/documents") : path.join(__dirname, "public/uploads");
 
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
@@ -36,9 +34,7 @@ const isAdmin = (req, res, next) => {
   if (req.user?.role === "admin") {
     return next();
   }
-  return res
-    .status(403)
-    .json({ error: "Acesso negado: apenas administradores" });
+  return res.status(403).json({ error: "Acesso negado: apenas administradores" });
 };
 
 // Middleware de autenticação
@@ -50,10 +46,7 @@ const authMiddleware = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "seu-segredo-aqui"
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "seu-segredo-aqui");
     req.user = decoded;
     next();
   } catch (error) {
@@ -68,12 +61,7 @@ app.use("/api/dashboard/captacao", authMiddleware);
 
 app.get("/api/admin/stats", authMiddleware, isAdmin, async (req, res) => {
   try {
-    const [
-      totalInvestments,
-      activeAdvisors,
-      pendingReservations,
-      pendingSignatures,
-    ] = await Promise.all([
+    const [totalInvestments, activeAdvisors, pendingReservations, pendingSignatures] = await Promise.all([
       prisma.investment.aggregate({
         _sum: { totalAmount: true },
         where: { status: "RESERVED" },
@@ -167,18 +155,14 @@ app.get("/api/investors", authMiddleware, async (req, res) => {
     res.json(investors);
   } catch (error) {
     console.error("[GET /investors/:advisorId]", error);
-    res
-      .status(500)
-      .json({ message: "Erro ao buscar investidores do assessor" });
+    res.status(500).json({ message: "Erro ao buscar investidores do assessor" });
   }
 });
 // Cadastro de usuário
 app.post("/api/register", async (req, res) => {
   const { name, email, password, role, ...rest } = req.body;
   if (!name || !email || !password || !role) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Campos obrigatórios faltando" });
+    return res.status(400).json({ success: false, message: "Campos obrigatórios faltando" });
   }
   try {
     const hash = await bcrypt.hash(password, 10);
@@ -197,9 +181,7 @@ app.post("/api/register", async (req, res) => {
   } catch (e) {
     console.log(e);
 
-    res
-      .status(400)
-      .json({ success: false, message: "Erro ao registrar usuário" });
+    res.status(400).json({ success: false, message: "Erro ao registrar usuário" });
   }
 });
 
@@ -221,8 +203,7 @@ app.get("/api/investments/:id", async (req, res) => {
         reservations: true,
       },
     });
-    if (!investment)
-      return res.status(404).json({ error: "Investment not found" });
+    if (!investment) return res.status(404).json({ error: "Investment not found" });
     res.json(investment);
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
@@ -234,16 +215,12 @@ app.post("/api/investments", upload.any(), async (req, res) => {
     const body = req.body;
 
     const commission = JSON.parse(body.commission || "{}");
-    const registeredWith = body.registeredWith
-      ? JSON.parse(body.registeredWith)
-      : [];
+    const registeredWith = body.registeredWith ? JSON.parse(body.registeredWith) : [];
 
     const documentFiles = req.files.filter((f) => f.fieldname === "documents");
     const documentNames = req.body.documentNames;
 
-    const names = Array.isArray(documentNames)
-      ? documentNames
-      : [documentNames];
+    const names = Array.isArray(documentNames) ? documentNames : [documentNames];
 
     const documents = documentFiles.map((file, index) => ({
       name: names[index] || file.originalname,
@@ -294,9 +271,7 @@ app.post("/api/investments", upload.any(), async (req, res) => {
     res.json({ success: true, investment: newInvestment });
   } catch (e) {
     console.error("Erro ao cadastrar ativo:", e);
-    res
-      .status(500)
-      .json({ success: false, message: "Erro ao cadastrar ativo" });
+    res.status(500).json({ success: false, message: "Erro ao cadastrar ativo" });
   }
 });
 
@@ -319,8 +294,7 @@ app.delete("/api/investments", async (req, res) => {
 });
 
 app.put("/api/investments", async (req, res) => {
-  const { investmentId, type, yieldRate, yieldIndex, totalAmount, status } =
-    req.body;
+  const { investmentId, type, yieldRate, yieldIndex, totalAmount, status } = req.body;
 
   const bodyParams = {
     type,
@@ -329,11 +303,7 @@ app.put("/api/investments", async (req, res) => {
     totalAmount,
     status,
   };
-  const filteredData = Object.fromEntries(
-    Object.entries(bodyParams).filter(
-      ([_, value]) => value !== undefined && value !== null
-    )
-  );
+  const filteredData = Object.fromEntries(Object.entries(bodyParams).filter(([_, value]) => value !== undefined && value !== null));
   try {
     const updatedInvestment = await prisma.investment.update({
       where: { id: investmentId },
@@ -364,15 +334,11 @@ app.post("/api/reservations", async (req, res) => {
     });
 
     if (!investment) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Ativo não encontrado" });
+      return res.status(404).json({ success: false, message: "Ativo não encontrado" });
     }
 
     if ((investment.availableAmount ?? 0) < amount) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Cotas insuficientes" });
+      return res.status(400).json({ success: false, message: "Cotas insuficientes" });
     }
 
     await prisma.investment.update({
@@ -395,9 +361,7 @@ app.post("/api/reservations", async (req, res) => {
     res.json({ success: true, reservation: newReservation });
   } catch (error) {
     console.error("Erro ao reservar:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Erro interno ao reservar cota" });
+    res.status(500).json({ success: false, message: "Erro interno ao reservar cota" });
   }
 });
 
@@ -479,9 +443,7 @@ app.post("/api/investimentos/:id/reservar", async (req, res) => {
   const { userId, amount, investorId } = req.body;
 
   if (!userId || !amount || !investorId) {
-    return res
-      .status(400)
-      .json({ error: "Campos obrigatórios: userId, investorId, amount" });
+    return res.status(400).json({ error: "Campos obrigatórios: userId, investorId, amount" });
   }
 
   try {
@@ -496,9 +458,7 @@ app.post("/api/investimentos/:id/reservar", async (req, res) => {
     }
 
     if (investimento.status !== "OPEN") {
-      return res
-        .status(400)
-        .json({ error: "Investimento não está disponível" });
+      return res.status(400).json({ error: "Investimento não está disponível" });
     }
 
     // Busca o nome do investidor pelo investorId
@@ -599,9 +559,7 @@ app.get("/api/advisors", async (req, res) => {
         let totalCommission = 0;
         investments.forEach((investment) => {
           if (investment.commission) {
-            totalCommission +=
-              (investment.commission.upfrontRate / 100) * totalRaised +
-              (investment.commission.recurringRate / 100) * totalRaised;
+            totalCommission += (investment.commission.upfrontRate / 100) * totalRaised + (investment.commission.recurringRate / 100) * totalRaised;
           }
         });
 
@@ -617,7 +575,7 @@ app.get("/api/advisors", async (req, res) => {
           select: {
             investorId: true,
           },
-          distinct: ["investorId"], // Distinct funciona no findMany, não no count
+          distinct: ["investorId"],
         });
 
         return {

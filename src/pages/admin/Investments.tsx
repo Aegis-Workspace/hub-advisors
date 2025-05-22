@@ -13,9 +13,7 @@ export function AdminInvestments() {
   const [isReadOnly, setIsReadOnly] = useState(true);
   const [showNewInvestmentModal, setShowNewInvestmentModal] = useState(false);
   const [showEditInvestmentModal, setEditInvestmentModal] = useState(false);
-  const [investmentIdToEdit, setInvestmentIdToEdit] = useState<number | null>(
-    null
-  );
+  const [investmentIdToEdit, setInvestmentIdToEdit] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -38,7 +36,7 @@ export function AdminInvestments() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["investments"] });
+      refetch();
       setShowNewInvestmentModal(false);
     },
     onError: (error: any) => {
@@ -47,14 +45,7 @@ export function AdminInvestments() {
   });
 
   const updateInvestmentMutation = useMutation({
-    mutationFn: async (updateData: {
-      investmentId: number;
-      type?: string;
-      yieldRate?: number;
-      yieldIndex?: string;
-      totalAmount?: number;
-      status?: string;
-    }) => {
+    mutationFn: async (updateData: { investmentId: number; type?: string; yieldRate?: number; yieldIndex?: string; totalAmount?: number; status?: string }) => {
       const res = await api.put("/investments", updateData);
       return res.data;
     },
@@ -82,18 +73,10 @@ export function AdminInvestments() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Gestão de Investimentos
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Gerencie as oportunidades de investimento disponíveis na
-              plataforma
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Gestão de Investimentos</h1>
+            <p className="mt-1 text-sm text-gray-500">Gerencie as oportunidades de investimento disponíveis na plataforma</p>
           </div>
-          <button
-            onClick={() => setShowNewInvestmentModal(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
-          >
+          <button onClick={() => setShowNewInvestmentModal(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
             <Plus className="w-5 h-5 mr-2" />
             Novo Investimento
           </button>
@@ -102,13 +85,7 @@ export function AdminInvestments() {
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar investimentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
+            <input type="text" placeholder="Buscar investimentos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
           </div>
         </div>
 
@@ -116,24 +93,12 @@ export function AdminInvestments() {
           <table className="min-w-full divide-y divide-gray-200 table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
-                  Investimento
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                  Tipo
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                  Rentabilidade
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                  Captação
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                  Ações
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Investimento</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Tipo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Rentabilidade</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Captação</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Status</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Ações</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -145,26 +110,16 @@ export function AdminInvestments() {
                 </tr>
               ) : (
                 investments
-                  .filter((inv) =>
-                    inv.name.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
+                  .filter((inv) => inv.name.toLowerCase().includes(searchTerm.toLowerCase()))
                   .map((investment) => (
                     <tr key={investment.id}>
                       {/* Investimento */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={`https://ui-avatars.com/api/?name=${investment.name}&background=fff&color=000&size=48`}
-                            alt={investment.name}
-                            className="w-10 h-10 rounded-lg"
-                          />
+                          <img src={`https://ui-avatars.com/api/?name=${investment.name}&background=fff&color=000&size=48`} alt={investment.name} className="w-10 h-10 rounded-lg" />
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {investment.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {investment.category}
-                            </p>
+                            <p className="text-sm font-medium text-gray-900">{investment.name}</p>
+                            <p className="text-xs text-gray-500">{investment.category}</p>
                           </div>
                         </div>
                       </td>
@@ -190,9 +145,7 @@ export function AdminInvestments() {
                             <option value="DEBENTURE">DEBENTURE</option>
                           </select>
                         ) : (
-                          <div className="text-sm text-gray-900">
-                            {investment.type}
-                          </div>
+                          <div className="text-sm text-gray-900">{investment.type}</div>
                         )}
                       </td>
 
@@ -231,15 +184,9 @@ export function AdminInvestments() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-sm text-gray-900">
-                            <span>
-                              {investment.yieldRate?.toFixed(1) ?? "-"}
-                            </span>
+                            <span>{investment.yieldRate?.toFixed(1) ?? "-"}</span>
                             <span className="text-gray-500">%</span>
-                            {investment.yieldIndex && (
-                              <span className="text-xs text-gray-400">
-                                {investment.yieldIndex}
-                              </span>
-                            )}
+                            {investment.yieldIndex && <span className="text-xs text-gray-400">{investment.yieldIndex}</span>}
                           </div>
                         )}
                       </td>
@@ -269,16 +216,7 @@ export function AdminInvestments() {
                                 currency: "BRL",
                               }).format(investment.totalAmount ?? 0)}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {investment.totalAmount &&
-                              investment.availableAmount != null
-                                ? `${Math.round(
-                                    (investment.availableAmount /
-                                      investment.totalAmount) *
-                                      100
-                                  )}% disponível`
-                                : "--"}
-                            </div>
+                            <div className="text-xs text-gray-500">{investment.totalAmount && investment.availableAmount != null ? `${Math.round((investment.availableAmount / investment.totalAmount) * 100)}% disponível` : "--"}</div>
                           </div>
                         )}
                       </td>
@@ -296,17 +234,7 @@ export function AdminInvestments() {
                               });
                             }}
                             className={`w-full h-10 text-xs font-medium rounded-full text-center
-                    ${
-                      investment.status === "OPEN"
-                        ? "bg-green-200 text-green-800"
-                        : investment.status === "CLOSED"
-                        ? "bg-red-200 text-red-800"
-                        : investment.status === "RESERVED"
-                        ? "bg-yellow-200 text-yellow-800"
-                        : investment.status === "DRAFT"
-                        ? "bg-gray-300 text-gray-700"
-                        : "bg-gray-400 text-black"
-                    }`}
+                    ${investment.status === "OPEN" ? "bg-green-200 text-green-800" : investment.status === "CLOSED" ? "bg-red-200 text-red-800" : investment.status === "RESERVED" ? "bg-yellow-200 text-yellow-800" : investment.status === "DRAFT" ? "bg-gray-300 text-gray-700" : "bg-gray-400 text-black"}`}
                           >
                             <option value="CLOSED">CLOSED</option>
                             <option value="DRAFT">DRAFT</option>
@@ -316,17 +244,7 @@ export function AdminInvestments() {
                         ) : (
                           <div
                             className={`h-8 w-full rounded-full flex items-center justify-center text-xs font-medium
-                    ${
-                      investment.status === "OPEN"
-                        ? "bg-green-200 text-green-800"
-                        : investment.status === "CLOSED"
-                        ? "bg-red-200 text-red-800"
-                        : investment.status === "RESERVED"
-                        ? "bg-yellow-200 text-yellow-800"
-                        : investment.status === "DRAFT"
-                        ? "bg-gray-300 text-gray-700"
-                        : "bg-gray-400 text-black"
-                    }`}
+                    ${investment.status === "OPEN" ? "bg-green-200 text-green-800" : investment.status === "CLOSED" ? "bg-red-200 text-red-800" : investment.status === "RESERVED" ? "bg-yellow-200 text-yellow-800" : investment.status === "DRAFT" ? "bg-gray-300 text-gray-700" : "bg-gray-400 text-black"}`}
                           >
                             {investment.status}
                           </div>
@@ -337,10 +255,7 @@ export function AdminInvestments() {
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
                           {!isReadOnly ? (
-                            <button
-                              className="text-sm text-blue-600 hover:underline"
-                              onClick={() => setIsReadOnly(true)}
-                            >
+                            <button className="text-sm text-blue-600 hover:underline" onClick={() => setIsReadOnly(true)}>
                               Salvar
                             </button>
                           ) : (
@@ -354,10 +269,7 @@ export function AdminInvestments() {
                               <Edit className="w-5 h-5" />
                             </button>
                           )}
-                          <button
-                            className="text-gray-400 hover:text-red-500"
-                            onClick={() => deleteInvestment(investment.id)}
-                          >
+                          <button className="text-gray-400 hover:text-red-500" onClick={() => deleteInvestment(investment.id)}>
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
@@ -370,18 +282,9 @@ export function AdminInvestments() {
         </div>
       </div>
 
-      <NewInvestmentModal
-        isOpen={showNewInvestmentModal}
-        onClose={() => setShowNewInvestmentModal(false)}
-        onSubmit={handleCreateInvestment}
-      />
+      <NewInvestmentModal isOpen={showNewInvestmentModal} onClose={() => setShowNewInvestmentModal(false)} onSubmit={handleCreateInvestment} />
 
-      <EditInvestmentModal
-        isOpen={showEditInvestmentModal}
-        onClose={() => setEditInvestmentModal(false)}
-        idUpdated={investmentIdToEdit}
-        refetch={refetch}
-      />
+      <EditInvestmentModal isOpen={showEditInvestmentModal} onClose={() => setEditInvestmentModal(false)} idUpdated={investmentIdToEdit} refetch={refetch} />
     </div>
   );
 }
